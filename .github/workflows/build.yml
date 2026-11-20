@@ -1,0 +1,42 @@
+name: Compila APK Impostazioni
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Estrai lo zip
+        run: |
+          unzip -o Impostazioni.zip -d progetto
+          ls progetto
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: 8.11.1
+
+      - name: Compila
+        working-directory: progetto/Impostazioni
+        run: gradle assembleRelease --no-daemon
+
+      - name: Rinomina APK
+        run: cp progetto/Impostazioni/app/build/outputs/apk/release/app-release.apk Impostazioni.apk
+
+      - name: Crea Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ github.run_number }}
+          name: Impostazioni ${{ github.run_number }}
+          files: Impostazioni.apk
